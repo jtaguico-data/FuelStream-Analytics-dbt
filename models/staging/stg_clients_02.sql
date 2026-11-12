@@ -21,7 +21,7 @@ renamed as (
         -- Empty columns inserted as Nulls for later unification
         cast(null as timestamp) as updated_at,
         cast(null as string) as email_status,
-        cast(null as boolean) as is_domain_valid
+        cast(null as string) as is_domain_valid
     from source
 )
 
