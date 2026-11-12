@@ -29,3 +29,15 @@ We have successfully mapped and standardized our raw BigQuery infrastructure int
 
 ### 🛡️ Governance & PII Controls
 To ensure enterprise-grade compliance and safely present this project in a public portfolio, columns containing sensitive personal data (such as `names`, `last_names`, `emails`, and physical `card_numbers`) are explicitly filtered out at this layer, preserving only the analytical dimensions (`gender`, `birth_date`, `location`).
+
+## 🔍 Data Quality Audit & Business Rules
+
+Before building the analytical marts, a rigorous data profiling and referential integrity audit was performed across the 67M+ transactions and the fragmented customer tables to establish clear business rules for the Silver layer (`intermediate`):
+
+### 1. Customer Entity Resolution (`int_clients`)
+- **Cross-Source Overlap:** Profiling revealed that `clients_01` and `clients_02` share **2,105,435 overlapping customer IDs** (roughly 99% of the secondary table), alongside **3 exact duplicate records** within `clients_02`.
+- **Resolution Rule:** Implemented a window function deduplication strategy (`ROW_NUMBER()`) over a unified ledger, strictly prioritizing records from `clients_01` due to its richer attribute schema (`updated_at`, `email_status`, `is_domain_valid`) to guarantee a single, authoritative record per `person_id`.
+
+### 2. Referential Integrity & Orphan Filtering (`int_transactions`)
+- **Orphan Audit:** Cross-referencing the 67M+ transaction ledger against the unified `int_clients` master table identified **5,489 orphaned transactions** belonging to **368 unmapped `person_id` keys** (<0.01% of total volume).
+- **Resolution Rule:** Orphaned transactions are explicitly filtered out in the Silver layer via referential validation against `int_clients`. Preserving only mapped records ensures strict referential integrity and prevents demographic distortion when evaluating customer loyalty and segmentation in the Gold layer.
