@@ -13,7 +13,6 @@ renamed as (
     select
         process,
         user_id,
-        card,
         prod as product_id,
         qty as quantity,
         points,
