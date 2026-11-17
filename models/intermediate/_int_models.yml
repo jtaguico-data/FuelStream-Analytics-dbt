@@ -1,8 +1,7 @@
 version: 2
-
 models:
   - name: int_clients
-    description: "A consolidated, deduplicated view of client records sourced from multiple upstream systems, providing a single source of truth for client identity."
+    description: "Integrated view of client profiles consolidated from multiple sources."
     columns:
       - name: person_id
         description: "Unique identifier for the client."
@@ -10,24 +9,52 @@ models:
           - unique
           - not_null
       - name: birth_date
-        description: "The client's date of birth."
+        description: "Client date of birth."
       - name: gender
-        description: "The gender of the client."
+        description: "Numeric code representing client gender."
       - name: receives_email
-        description: "Flag or indicator showing whether the client has opted in to receive email communications."
+        description: "Flag indicating if the client opted into email communications."
       - name: account_number
-        description: "Unique account number associated with the client."
+        description: "Unique account identifier."
       - name: registered_at
-        description: "Date or timestamp when the client originally registered."
+        description: "Timestamp when the client account was created."
       - name: member_status
-        description: "Current membership status of the client."
+        description: "Current membership tier or status code."
       - name: account_type
-        description: "Category or tier of the client's account."
+        description: "Classification of the client account."
       - name: file_date
-        description: "Reference date of the source file ingestion, populated where applicable for multi-source alignment."
+        description: "Date the source file was processed."
       - name: updated_at
-        description: "Timestamp indicating the most recent update to the client record."
+        description: "Timestamp of the last record modification."
       - name: email_status
-        description: "Delivery or verification status of the client's email address."
+        description: "Current status of the client's email address."
       - name: is_domain_valid
-        description: "Boolean or flag indicating whether the client's email domain passed validation checks."
+        description: "Flag indicating if the email domain is verified."
+
+  - name: int_transactions
+    description: "Integrated transaction history across all channels."
+    columns:
+      - name: transaction_id
+        description: "Identifier of the transaction header or receipt (may repeat across multiple line items)."
+        tests:
+          - not_null
+      - name: process
+        description: "The internal process name that generated the transaction."
+      - name: user_id
+        description: "Identifier for the user performing the transaction."
+      - name: product_id
+        description: "Identifier for the product purchased."
+      - name: quantity
+        description: "Number of units involved in the transaction."
+      - name: points
+        description: "Loyalty points associated with the transaction."
+      - name: site_id
+        description: "Identifier for the site where the transaction occurred."
+      - name: registered_at
+        description: "Timestamp of registration related to the transaction."
+      - name: transaction_channel_id
+        description: "Identifier for the sales channel."
+      - name: transacted_at
+        description: "Timestamp when the transaction was completed."
+      - name: person_id
+        description: "Identifier for the client associated with the transaction."
