@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: int_clients
+    description: "A consolidated, deduplicated view of client records sourced from multiple upstream systems, providing a single source of truth for client identity."
+    columns:
+      - name: person_id
+        description: "Unique identifier for the client."
+        tests:
+          - unique
+          - not_null
+      - name: birth_date
+        description: "The client's date of birth."
+      - name: gender
+        description: "The gender of the client."
+      - name: receives_email
+        description: "Flag or indicator showing whether the client has opted in to receive email communications."
+      - name: account_number
+        description: "Unique account number associated with the client."
+      - name: registered_at
+        description: "Date or timestamp when the client originally registered."
+      - name: member_status
+        description: "Current membership status of the client."
+      - name: account_type
+        description: "Category or tier of the client's account."
+      - name: file_date
+        description: "Reference date of the source file ingestion, populated where applicable for multi-source alignment."
+      - name: updated_at
+        description: "Timestamp indicating the most recent update to the client record."
+      - name: email_status
+        description: "Delivery or verification status of the client's email address."
+      - name: is_domain_valid
+        description: "Boolean or flag indicating whether the client's email domain passed validation checks."
