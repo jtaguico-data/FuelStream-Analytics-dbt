@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: fuelstream_transactions 
+    database: jtaguico-websites
+    schema: datasets_test 
+    tables:
+      - name: sh_trx_Unq 
+
+  - name: fuelstream_consumers 
+    database: jtaguico-websites
+    schema: ML_consumer 
+    tables:
+      - name: clients_01 
+      - name: clients_02
