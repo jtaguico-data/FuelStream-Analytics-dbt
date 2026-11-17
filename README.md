@@ -50,3 +50,34 @@ Before building the analytical marts, I performed a rigorous data profiling and 
 ### 2. Referential Integrity & Orphan Filtering (`int_transactions`)
 - **Orphan Audit:** Cross-referencing the 67M+ transaction ledger against the unified `int_clients` master table identified **5,489 orphaned transactions** belonging to **368 unmapped `person_id` keys** (<0.01% of total volume).
 - **Resolution Rule:** Orphaned transactions are explicitly filtered out in the Silver layer via an `INNER JOIN` validation against `int_clients`. Preserving only mapped records ensures strict referential integrity and prevents demographic distortion when evaluating customer loyalty and segmentation in the Gold layer.
+
+---
+
+## 🤖 AI-Augmented Data Governance & Self-Service Analytics (`scripts/`)
+
+To accelerate metadata governance and enable natural-language exploration over the 67M+ row warehouse without exposing raw PII or incurring unnecessary compute costs, I integrated **Google Gemini AI** (`google-genai` SDK) with **BigQuery** through two standalone Python automation tools:
+
+### 1. Automated dbt Documentation & Test Generator (`scripts/generate_dbt_docs.py`)
+- **Metadata-Driven Synthesis:** Dynamically queries BigQuery's `INFORMATION_SCHEMA.COLUMNS` across all staging and intermediate models (58 columns) to extract exact column names and data types without reading row-level data.
+- **Automated YAML & Quality Rules:** Uses Gemini with automatic model fallback (`gemini-3.1-flash-lite` / `gemini-3.6-flash`) to generate standardized `_stg_models.yml` and `_int_models.yml` files, drafting business descriptions and primary-key tests (`unique`, `not_null`) later validated via `dbt test` and `dbt docs generate`.
+
+### 2. Natural Language to GoogleSQL Agent (`scripts/text_to_sql.py`)
+- **Schema-Grounded Text-to-SQL:** Injects live BigQuery metadata into Gemini to translate plain-English or Spanish business questions into dialect-accurate, table-qualified **GoogleSQL**.
+- **Architectural Guardrails:** Instructs the LLM to prioritize curated Silver (`int_`) models over raw Bronze (`stg_`) views and enforces a strict read-only validation check (`SELECT` / `WITH` only) prior to query execution.
+
+#### Quickstart (`scripts/`)
+```bash
+# Install dependencies
+pip install google-genai google-cloud-bigquery pandas db-dtypes
+
+# Set environment variables
+export GEMINI_API_KEY="your_api_key"
+export GCP_PROJECT_ID="jtaguico-websites"
+export DBT_DATASET_ID="dbt_jdata"
+
+# 1. Regenerate dbt schema.yml definitions from BigQuery metadata
+python scripts/generate_dbt_docs.py
+
+# 2. Query the warehouse in natural language
+python scripts/text_to_sql.py "How many unique clients exist by member_status and account_type?"
+```
