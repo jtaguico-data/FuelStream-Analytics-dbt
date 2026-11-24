@@ -7,7 +7,7 @@ with source as (
 renamed as (
     select
         idpersona as person_id,
-        fechanacimiento as birth_date,
+        cast(fechanacimiento as date) as birth_date,
         genero as gender,
         recibecorreo as receives_email,
         numerocuenta as account_number,
