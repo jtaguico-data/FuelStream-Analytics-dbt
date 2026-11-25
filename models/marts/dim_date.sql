@@ -1,13 +1,15 @@
--- query dim_date.sql
+-- dim_date.sql
 {{ config(materialized='view') }}
 
 with
 
+-- Automate creation of days Min and Max dates from Transactions table
 date_spine as (
     select date_day
     from unnest(generate_date_array(date '2016-01-01', date '2019-12-31')) as date_day  
 )
 
+-- Integrating Argentinian holidays from the csv
 , holidays as (
     select 
         cast(holiday_date as date) as holiday_date

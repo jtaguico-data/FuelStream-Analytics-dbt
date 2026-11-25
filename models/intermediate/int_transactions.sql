@@ -19,3 +19,10 @@ select
 from trx as t
 inner join clients as c
     on t.person_id = c.person_id
+-- Deduplicate batch-retry transactions (10 duplicates found sharing site_id 361), prioritizing the physical station record
+qualify row_number() over (
+        partition by t.transaction_id
+        order by
+            case when t.site_id = 361 then 2 else 1 end asc,
+            t.registered_at desc
+    ) = 1
