@@ -34,7 +34,13 @@ def generate_full_dbt_docs() -> str:
     2. Start with 'version: 2' and the 'models:' key.
     3. Include every table and column exactly as spelled below.
     4. Write concise, business-oriented descriptions for each model and column.
-    5. Add 'unique' and 'not_null' tests on primary keys in 'int_' models, and 'not_null' in 'stg_' models.
+    5. Apply dbt tests according to the layer prefix:
+   - For 'stg_' models: add 'not_null' on primary keys.
+   - For 'int_' models: add 'unique' and 'not_null' on primary keys (person_id, transaction_id).
+   - For 'dim_' models (dim_clients, dim_date, dim_products): add 'unique' and 'not_null' on their primary keys (person_id, date_id, product_id).
+   - For 'fct_transactions': add 'unique' and 'not_null' on transaction_id, and add 'not_null' plus 'relationships' tests on foreign keys referencing the dimension tables (person_id -> ref('dim_clients'), date_id -> ref('dim_date'), product_id -> ref('dim_products')).
+   - Use modern dbt Fusion YAML syntax for relationship tests by nesting 'to:' and 'field:' inside an 'arguments:' block.
+
 
     BigQuery Schema:
     {schema_text}

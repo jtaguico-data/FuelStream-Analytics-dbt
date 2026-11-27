@@ -1,0 +1,110 @@
+version: 2
+models:
+  - name: dim_clients
+    description: Dimension table containing cleaned and enriched client profile information.
+    columns:
+      - name: person_id
+        description: Unique identifier for the client.
+        tests:
+          - unique
+          - not_null
+      - name: birth_date
+        description: Client date of birth.
+      - name: gender
+        description: Numeric code representing client gender.
+      - name: receives_email
+        description: Flag indicating if the client opted into email communications.
+      - name: account_number
+        description: Unique account identifier.
+      - name: registered_at
+        description: Timestamp when the client account was created.
+      - name: member_status
+        description: Current status of the membership.
+      - name: account_type
+        description: Classification of the client account.
+      - name: age
+        description: Calculated age of the client.
+      - name: age_group
+        description: Categorized age range for the client.
+  - name: dim_date
+    description: Date dimension table for time-series analysis.
+    columns:
+      - name: date_id
+        description: Unique date identifier.
+        tests:
+          - unique
+          - not_null
+      - name: year
+        description: Calendar year.
+      - name: month
+        description: Calendar month number.
+      - name: month_name
+        description: Name of the month.
+      - name: day_of_week
+        description: Day of the week index.
+      - name: day_name
+        description: Name of the day of the week.
+      - name: is_weekend
+        description: Flag indicating if the date falls on a weekend.
+      - name: is_holiday
+        description: Flag indicating if the date is a holiday.
+      - name: holiday_name
+        description: Name of the holiday if applicable.
+  - name: dim_products
+    description: Dimension table containing product catalog details.
+    columns:
+      - name: product_id
+        description: Unique product identifier.
+        tests:
+          - unique
+          - not_null
+      - name: product_category
+        description: Category classification of the product.
+      - name: product_tier
+        description: Tier level of the product.
+  - name: fct_transactions
+    description: Fact table containing granular transaction records.
+    columns:
+      - name: transaction_id
+        description: Unique identifier for the transaction.
+        tests:
+          - unique
+          - not_null
+      - name: person_id
+        description: Foreign key to dim_clients.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_clients')
+                field: person_id
+      - name: product_id
+        description: Foreign key to dim_products.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: date_id
+        description: Foreign key to dim_date.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_id
+      - name: site_id
+        description: Identifier for the transaction site.
+      - name: transaction_channel_id
+        description: Identifier for the sales channel.
+      - name: transacted_at
+        description: Timestamp when the transaction occurred.
+      - name: registered_at
+        description: Timestamp when the transaction was registered in the system.
+      - name: quantity
+        description: Number of units transacted.
+      - name: points
+        description: Total points earned from the transaction.
+      - name: points_per_unit
+        description: Points earned per unit.
