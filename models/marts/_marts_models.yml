@@ -22,10 +22,15 @@ models:
         description: Current status of the membership.
       - name: account_type
         description: Classification of the client account.
+      - name: customer_segment
+        description: Business classification distinguishing Commercial / Fleet accounts from Retail / Consumer accounts.
+        tests:
+          - not_null
       - name: age
         description: Calculated age of the client.
       - name: age_group
         description: Categorized age range for the client.
+
   - name: dim_date
     description: Date dimension table for time-series analysis.
     columns:
@@ -50,6 +55,7 @@ models:
         description: Flag indicating if the date is a holiday.
       - name: holiday_name
         description: Name of the holiday if applicable.
+
   - name: dim_products
     description: Dimension table containing product catalog details.
     columns:
@@ -62,8 +68,9 @@ models:
         description: Category classification of the product.
       - name: product_tier
         description: Tier level of the product.
+
   - name: fct_transactions
-    description: Fact table containing granular transaction records.
+    description: Fact view containing granular, referentially validated transaction records.
     columns:
       - name: transaction_id
         description: Unique identifier for the transaction.
@@ -103,8 +110,155 @@ models:
       - name: registered_at
         description: Timestamp when the transaction was registered in the system.
       - name: quantity
-        description: Number of units transacted.
+        description: Raw number of units transacted.
       - name: points
         description: Total points earned from the transaction.
       - name: points_per_unit
         description: Points earned per unit.
+      - name: is_quantity_outlier
+        description: Boolean flag identifying extreme volume anomalies (<= 0 or > 1,500 units).
+        tests:
+          - not_null
+      - name: clean_quantity
+        description: Sanitized transaction volume excluding extreme POS outliers (> 1,500 units).
+
+  - name: agg_monthly_network_volume
+    description: Monthly pre-aggregated consumption volume, active customers, and loyalty points across the physical service station network.
+    columns:
+      - name: month_date
+        description: First day of the transaction month.
+        tests:
+          - not_null
+      - name: year
+        description: Calendar year of the transaction.
+      - name: month
+        description: Calendar month number of the transaction.
+      - name: site_id
+        description: Identifier for the physical service station.
+        tests:
+          - not_null
+      - name: product_id
+        description: Foreign key to dim_products.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: product_category
+        description: Category classification of the product.
+      - name: product_tier
+        description: Tier level of the product (Standard or Premium).
+      - name: total_transactions
+        description: Total count of valid transactions in the month.
+      - name: active_customers
+        description: Distinct count of active customers transacting at the station.
+      - name: total_quantity
+        description: Sum of sanitized volume (clean_quantity) sold.
+      - name: total_points
+        description: Sum of loyalty points awarded.
+      - name: avg_points_per_unit
+        description: Ratio of total points awarded per sanitized unit sold.
+      - name: weekend_quantity
+        description: Sanitized volume sold during weekends.
+      - name: holiday_quantity
+        description: Sanitized volume sold during national holidays.
+
+  - name: agg_demographic_consumption
+    description: Monthly pre-aggregated consumption metrics segmented by customer demographics, business segment, and product tier.
+    columns:
+      - name: month_date
+        description: First day of the transaction month.
+        tests:
+          - not_null
+      - name: year
+        description: Calendar year of the transaction.
+      - name: month
+        description: Calendar month number of the transaction.
+      - name: age_group
+        description: Categorized age cohort of the customer.
+      - name: gender
+        description: Numeric code representing customer gender.
+      - name: member_status
+        description: Current status of the customer membership.
+      - name: customer_segment
+        description: Business classification (Commercial / Fleet vs. Retail / Consumer).
+        tests:
+          - not_null
+      - name: product_id
+        description: Foreign key to dim_products.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: product_category
+        description: Category classification of the product.
+      - name: product_tier
+        description: Tier level of the product (Standard or Premium).
+      - name: total_transactions
+        description: Total count of valid transactions for the demographic segment.
+      - name: active_customers
+        description: Distinct count of active customers in the segment.
+      - name: total_quantity
+        description: Sum of sanitized volume (clean_quantity) consumed.
+      - name: total_points
+        description: Sum of loyalty points earned.
+      - name: avg_quantity_per_transaction
+        description: Average sanitized volume per transaction.
+
+  - name: agg_customer_loyalty_rfm
+    description: Customer-level Recency, Frequency, and Monetary (RFM) summary dynamically anchored to the dataset cutoff date, measuring cross-category adoption and loyalty tiers.
+    columns:
+      - name: person_id
+        description: Unique identifier for the customer, foreign key to dim_clients.
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_clients')
+                field: person_id
+      - name: customer_segment
+        description: Business classification (Commercial / Fleet vs. Retail / Consumer).
+      - name: age_group
+        description: Categorized age cohort of the customer.
+      - name: gender
+        description: Numeric code representing customer gender.
+      - name: member_status
+        description: Current status of the customer membership.
+      - name: first_tx_date
+        description: Date of the customer's first recorded transaction.
+      - name: last_tx_date
+        description: Date of the customer's most recent recorded transaction.
+      - name: recency_days
+        description: Days elapsed between last_tx_date and the maximum transaction date in the dataset.
+      - name: active_months
+        description: Count of distinct calendar months in which the customer transacted.
+      - name: total_transactions
+        description: Lifetime count of valid transactions.
+      - name: fuel_transactions
+        description: Lifetime count of Fuel transactions.
+      - name: store_transactions
+        description: Lifetime count of Convenience Store transactions.
+      - name: lubricants_transactions
+        description: Lifetime count of Lubricants transactions.
+      - name: total_quantity
+        description: Lifetime sum of sanitized volume (clean_quantity) across all categories.
+      - name: fuel_quantity
+        description: Lifetime sanitized volume of Fuel purchased.
+      - name: store_quantity
+        description: Lifetime sanitized units purchased in Convenience Store.
+      - name: lubricants_quantity
+        description: Lifetime sanitized units purchased in Lubricants.
+      - name: premium_fuel_share
+        description: Share of Fuel transactions corresponding to Premium tier fuel.
+      - name: total_points
+        description: Lifetime sum of loyalty points earned.
+      - name: distinct_sites_visited
+        description: Count of distinct service stations visited by the customer.
+      - name: loyalty_segment
+        description: Multi-dimensional customer loyalty tier based on recency, fuel frequency, and cross-category adoption.
+        tests:
+          - not_null

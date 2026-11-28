@@ -37,7 +37,12 @@ final as (
             when raw_age between 55 and 64 then '55-64'
             when raw_age between 65 and 100 then '65+'
             else 'Unknown'
-        end as age_group
+        end as age_group,
+        case
+            when account_type = 2 then 'Commercial / Fleet'
+            when account_type = 1 then 'Retail / Consumer'
+            else 'Unknown'
+        end as customer_segment
     from calculated_ages
 )
 

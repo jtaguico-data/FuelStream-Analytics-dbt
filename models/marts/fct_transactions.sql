@@ -22,7 +22,15 @@ transactions as (
         -- Metrics
         quantity,
         points,
-        safe_divide(points, quantity) as points_per_unit
+        safe_divide(points, quantity) as points_per_unit,
+        case
+            when quantity <= 0 or quantity > 1500 then true
+            else false
+        end as is_quantity_outlier,
+        case
+            when quantity > 0 and quantity <= 1500 then quantity
+            else null
+        end as clean_quantity,
     from transactions
 )
 
